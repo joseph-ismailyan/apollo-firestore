@@ -55,3 +55,25 @@ code {
   --un-text-opacity: 1;
   color: rgba(255,255,255,var(--un-text-opacity));
 }
+
+.car-card{
+  border: 1px solid white;
+  border-radius: 6px;
+  padding: 12px;
+  position: relative;
+  min-width: 250px;
+}
+
+.edit-icon {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+.btn-no-styles {
+  background: none;
+  color: inherit;
+  padding: 0;
+  font: inherit;
+  border: none;
+}

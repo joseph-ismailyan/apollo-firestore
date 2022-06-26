@@ -16,6 +16,11 @@
   },
   "dependencies": {
     "@solid-primitives/graphql": "^1.1.1",
-    "solid-js": "^1.4.4"
+    "@urql/core": "^2.5.0",
+    "graphql": "^16.5.0",
+    "solid-icons": "^0.4.13",
+    "solid-js": "^1.4.4",
+    "subscriptions-transport-ws": "^0.11.0",
+    "wonka": "^4.0.15"
   }
 }

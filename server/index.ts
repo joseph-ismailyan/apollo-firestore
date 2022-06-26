@@ -8,6 +8,7 @@ const firestore = getFirestore();
   
 interface Car {
 	carId: string;
+	make: string;
 	model: string;
 }
   
@@ -40,22 +41,23 @@ const typeDefs = gql`
 	}
 
 	type Query {
-		car(carId: String!): Car
+		car(carId: ID!): Car
 		cars: [Car]
-
-		expense(expenseId: String!): Expense
+		expense(expenseId: ID!): Expense
 		expenses: [Expense]
-
-		totalExpenses(carId: String!): Float
+		totalExpenses(carId: ID!): Float
 	}
 
 	type Mutation {
-		createCar(model: String!): CarMutationResponse
-		createExpense(carId: String!, value: Float!, description: String!): ExpenseMutationResponse
+		createCar(make: String!, model: String!): CarMutationResponse
+		deleteCar(carId: ID):  CarMutationResponse
+		createExpense(carId: ID!, description: String!, value: Float!): ExpenseMutationResponse
+		deleteExpense(expenseId: ID!): ExpenseMutationResponse
 	}
 
 	type Car {
 		carId: ID!
+		make: String!
 		model: String!
 		created: String!
 
@@ -121,7 +123,7 @@ const typeDefs = gql`
 					.get();
 
 				return carExpenses.docs.reduce((total: number, expense: any) => {
-						return total + expense?.data().value
+						return total + expense?.data()?.value
 				}, 0) as number;
 			}
 			catch(error) {
@@ -130,11 +132,12 @@ const typeDefs = gql`
 		}
 	},
 	Mutation: {
-		async createCar(_: null, { model }: { model: string }) {
+		async createCar(_: null, { make, model }: { make: string, model: string }) {
 			const carId = await firestore
 				.collection('cars')
 				.doc()
 				.id;
+
 			const created = FieldValue.serverTimestamp();
 
 			const addToCars = await firestore
@@ -142,6 +145,7 @@ const typeDefs = gql`
 				.doc(carId)
 				.set({
 					carId,
+					make,
 					model,
 					created
 				});
@@ -152,13 +156,45 @@ const typeDefs = gql`
 
 			const car = carDoc.data() as Car;
 
-			const code = 200;
-			const success = true;
-			const message = carId;
-
-			return {code, success, message, car};
+			return {code: 200, success: true, message: carId, car};
 		},
-		async createExpense(_: null, { carId, value }: { carId: string, value: number }) {
+		async deleteCar(_: null, { carId }: { carId: string }) {
+			try {
+				const carDoc = await firestore
+					.doc(`cars/${carId}`)
+					.get();
+
+				const car = carDoc.data() as Car | undefined; 
+
+				if(!car) return {code: 404, success: false, message: `Car with ID "${carId}" not found.`};
+
+				const carExpenses = await firestore
+					.collection('expenses')
+					.where('carId', '==', carId)
+					.get();
+				
+				if(carExpenses.docs.length !== 0) {
+					for(const expense of carExpenses.docs) {
+						const expenseId = expense?.data()?.expenseId;
+						const deleteExpenseRes = await firestore
+							.collection('expenses')
+							.doc(expenseId)
+							.delete();		
+					}
+				}
+
+				const deleteCarRes = await firestore
+					.collection('cars')
+					.doc(carId)
+					.delete();		
+
+				return {code: 200, success: true, message: `Deleted carId ${carId}.`};
+			}
+			catch(error) {
+				throw new ApolloError(error as string);
+			}
+		},
+		async createExpense(_: null, { carId, description, value }: { carId: string, description: string, value: number }) {
 			const expenseId = await firestore
 				.collection('expenses')
 				.doc()
@@ -172,12 +208,14 @@ const typeDefs = gql`
 				.set({
 					expenseId,
 					carId,
+					description,
 					value,
 					created
 				});
+
 			const carRef = await firestore
 				.collection('cars')
-				.doc(carId)
+				.doc(carId);
 		
 			const addExpenseToCar = carRef
 				.update({expenseIds: FieldValue.arrayUnion(expenseId)})
@@ -187,14 +225,37 @@ const typeDefs = gql`
 				.get();
 
 			const expense = expenseDoc.data() as Expense;
-			const code = 200;
-			const success = true;
-			const message = expenseId;
 
-			return {code, success, message, expense};	
-		}
-	
+			return {code: 200, success: true, message: expenseId, expense};	
+		},
+		async deleteExpense(_: null, { expenseId }: { expenseId: string }) {
+			try {
+				const expenseDoc = await firestore
+					.doc(`expenses/${expenseId}`)
+					.get();
 
+				const expense = expenseDoc.data() as Expense | undefined;
+
+				if(!expense) return {code: 404, success: false, message: `Expense with ID "${expenseId}" not found.`};
+
+				const carRef = await firestore
+					.collection('cars')
+					.doc(expense?.carId);
+		
+				const addExpenseToCar = carRef
+					.update({expenseIds: FieldValue.arrayRemove(expenseId)})
+
+				const deleteExpenseRes = await firestore
+					.collection('expenses')
+					.doc(expenseId)
+					.delete();		
+
+				return {code: 200, success: true, message: `Deleted expenseID ${expenseId}.`};
+			}
+			catch(error) {
+				throw new ApolloError(error as string);
+			}
+		},
 	},
 	Car: {
 		async expenses(car: Car) {
@@ -231,12 +292,13 @@ const typeDefs = gql`
 				const car = await firestore
 					.doc(`cars/${expense.carId}`)
 					.get();
+
 				return car.data() as Car;
 			} 
 			catch(error) {
 				throw new ApolloError(error as string);
 			}
-	  }
+		}
 	}
   };
   
