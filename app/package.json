@@ -16,6 +16,8 @@
   },
   "dependencies": {
     "@solid-primitives/graphql": "^1.1.1",
+    "@suid/icons-material": "^0.2.5",
+    "@suid/material": "^0.4.3",
     "@urql/core": "^2.5.0",
     "graphql": "^16.5.0",
     "solid-icons": "^0.4.13",

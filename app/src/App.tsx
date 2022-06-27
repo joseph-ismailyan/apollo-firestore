@@ -1,104 +1,102 @@
 // import { gql, createGraphQLClient } from "@solid-primitives/graphql";
 import { createClient } from "@urql/core"
 import { gql } from "@solid-primitives/graphql"
-import { Component, Show, For, createSignal } from "solid-js";
-import { AiOutlineDelete, AiOutlineLoading3Quarters } from 'solid-icons/ai'
+import { Component, Show, For, createSignal, onMount } from "solid-js";
+import { CarCard, AddCar } from "./components.jsx";
+import { Car } from './interfaces.js';
 import "./index.css";
 
 const App: Component = () => {
-    // const new_query = createGraphQLClient("http://localhost:4000/graphql");
     const client = createClient({
         url: 'http://localhost:4000',
         requestPolicy: 'cache-and-network'
     });
-    interface Expense {
-        expenseId: string;
-        carId: string;
-        description: string;
-        value: number;
-    }
 
-    interface Car {
-        carId: string;
-        make: string;
-        model: string;
-        expenses: [Expense];
-        loading: boolean;
-    }
+    const [carsData, setCarsData] = createSignal<Car[]>([]);
 
-    interface Cars {
-        cars: [Car]
-    }
-
-    const [carsData, setCarsData] = createSignal([]);
-
-
-    const getCarsData = () => {
+    const getCarsData = (): void => {
         client.query(
             gql`
                 query Cars {
                     cars {
                         carId,
                         make, 
-                        model, 
+                        model,
+                        totalExpenses,
                         expenses {
                             value, 
                             description
                         }
                     }
                 }
-            `).toPromise().then(({ data }) => {
-                    setCarsData(data.cars);
-            })
+            `
+        ).toPromise()
+        .then(({ data }) => {
+            setCarsData(data.cars);
+        });
     }
 
-    const deleteCar = (carId: string) => {
-        const deleteCarRes = client.mutation(
-                gql`
-                    mutation Car($carId: ID!) {
-                        deleteCar(carId: $carId){
-                            code,
-                            success,
-                            message
-                        }
+    const deleteCar = async (carId: string) => {
+        await client.mutation(
+            gql`
+                mutation Car($carId: ID!) {
+                    deleteCar(carId: $carId){
+                        code,
+                        success,
+                        message
                     }
-                `, { carId }
-            ).toPromise().then(({ data }) => {
-                console.log(data);
-                getCarsData();
-            });
+                }
+            `, { carId }
+        ).toPromise()
+        .then((res: object) => {
+            getCarsData();
+            return res;
+        })
+        .catch((error: object) => {return error});
+
+        return {'error': 'Could not delete car.'};
     }
 
-    getCarsData();
+    const createCar = async (make: string, model: string) => {
+        await client.mutation(
+            gql`
+                mutation Car($make: String!, $model: String!) {
+                    createCar(make: $make, model: $model){
+                        code,
+                        success,
+                        message
+                    }
+                }
+            `, { make, model }
+        ).toPromise()
+        .then((res: object) => {
+            getCarsData();
+            return res;
+        })
+        .catch((error: object) => {return error});
+
+        return {'error': 'Could not create car.'};
+    }
+
+    onMount(() => {
+        getCarsData();
+    });
   
 return (
     <>
-    <div class="p-24 box-border w-full min-h-screen flex flex-col justify-center items-center space-y-4 bg-gray-800 text-white">
+    <main class="p-24 box-border w-full min-h-screen flex flex-col justify-center items-center space-y-4 text-white">
         <h4>All Cars</h4>
-        <Show when={carsData()} fallback={<h3>Loading...</h3>}>
-            <div>
-                <For each={carsData()}>
+        <AddCar createCar={createCar}></AddCar>
+        <Show when={carsData()} fallback={<div>Loading...</div>}>
+            <section>
+                <For each={carsData() as Car[]}>
                     {(car: Car)=> (
-                        <div class="car-card" style={{"margin-bottom": "10px"}}>
-                            Make: {car?.make}<br></br>
-                            Model: {car?.model}
-                            <For each={car?.expenses} fallback={<span></span>}>
-                                {(expense: Expense) => (
-                                    <li style={{color: "lightblue"}}>
-                                        {expense.description} - ${expense.value}
-                                    </li>
-                                )}
-                            </For>
-                            <button onClick={() => {car['loading'] = true; console.log(car); deleteCar(car?.carId)}} class="edit-icon btn-no-styles">
-                                { !car?.loading && <AiOutlineDelete size={20} color="#FFF"/> }
-                                { car?.loading && <AiOutlineLoading3Quarters size={20} color="#FFF"/> }
-                            </button>
-                        </div>
+                        <CarCard car={car} deleteCar={deleteCar}></CarCard>
                     )}
                 </For>
-            </div>
+            </section>
         </Show>
-    </div>
+    </main>
     </>
   );
 };
