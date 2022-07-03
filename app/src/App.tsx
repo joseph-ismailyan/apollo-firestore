@@ -20,6 +20,7 @@ const App: Component = () => {
                 query Cars {
                     cars {
                         carId,
+                        year,
                         make, 
                         model,
                         totalExpenses,
@@ -57,17 +58,17 @@ const App: Component = () => {
         return {'error': 'Could not delete car.'};
     }
 
-    const createCar = async (make: string, model: string) => {
+    const createCar = async (year: string, make: string, model: string) => {
         await client.mutation(
             gql`
-                mutation Car($make: String!, $model: String!) {
-                    createCar(make: $make, model: $model){
+                mutation Car($year: String!, $make: String!, $model: String!) {
+                    createCar(year: $year, make: $make, model: $model){
                         code,
                         success,
                         message
                     }
                 }
-            `, { make, model }
+            `, { year, make, model }
         ).toPromise()
         .then((res: object) => {
             getCarsData();
@@ -84,7 +85,7 @@ const App: Component = () => {
   
 return (
     <>
-    <main class="p-24 box-border w-full min-h-screen flex flex-col justify-center items-center space-y-4 text-white">
+    <main class="box-border w-full min-h-screen flex flex-col justify-center items-center space-y-4 text-white">
         <h4>All Cars</h4>
         <AddCar createCar={createCar}></AddCar>
         <Show when={carsData()} fallback={<div>Loading...</div>}>

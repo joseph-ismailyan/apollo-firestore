@@ -7,6 +7,7 @@ interface Expense {
 
 interface Car {
     carId: string;
+    year: string,
     make: string;
     model: string;
     totalExpenses: number;

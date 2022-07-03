@@ -1,20 +1,26 @@
 :root {
-  --primary-text-color: rgb(0, 6, 130);
+  --primary-text-color: rgb(0, 3, 59);
   --primary-bg-color: rgb(188, 188, 188);
   color: var(--primary-text-color);
 }
 
-main {
-  background-color: rgb(154, 184, 225);
+html {
+  font-size: 14pt;
+  font-family: 'Open Sans', sans-serif;
 }
 
 body {
+  padding: 0;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+}
+
+a,
+button {
+  cursor: pointer;
+}
+
+main {
+  background-color: rgb(154, 184, 225);
 }
 
 code {
@@ -41,6 +47,7 @@ code {
 .box-border {
   box-sizing: border-box;
 }
+
 .min-h-screen { 
   min-height: 100vh; 
 }
@@ -48,15 +55,7 @@ code {
 .w-full {
   width: 100%;
 }
-.space-y-4 > :not([hidden]) ~ :not([hidden]) {
-  --un-space-y-reverse: 0;
-  margin-top: calc(1rem * calc(1 - var(--un-space-y-reverse)));
-  margin-bottom: calc(1rem * var(--un-space-y-reverse));
-}
 
-.p-24 { 
-  padding: 6rem;
-}
 .text-white{
   --un-text-opacity: 1;
   color: rgba(255,255,255,var(--un-text-opacity));
@@ -65,7 +64,8 @@ code {
 .car-card{
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--primary-text-color);
+  border: 1px solid rgb(188, 188, 188);
+  box-shadow: 1px 1px 10px -4px #000;
   border-radius: 6px;
   padding: 12px;
   position: relative;
@@ -73,7 +73,8 @@ code {
   background: white;
 }
 
-.car-card span {
+.car-card span, 
+.car-card button {
   color: var(--primary-text-color);
 }
 
@@ -98,4 +99,26 @@ code {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+.expense-row {
+  display: grid;
+  grid-template-columns: 70% 30%;
+  row-gap: 10px;
+  font-size: 11pt;
+  color:var(--primary-text-color);
+  padding: 4px 0;
+
+}
+
+.expense-item {
+  
+}
+
+.expense-item-right{
+  justify-self: end;
+}
+
+.expense-item-left {
+
 }

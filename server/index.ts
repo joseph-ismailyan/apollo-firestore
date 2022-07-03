@@ -8,6 +8,7 @@ const firestore = getFirestore();
   
 interface Car {
 	carId: string;
+	year: string;
 	make: string;
 	model: string;
 }
@@ -49,7 +50,7 @@ const typeDefs = gql`
 	}
 
 	type Mutation {
-		createCar(make: String!, model: String!): CarMutationResponse
+		createCar(year: String!, make: String!, model: String!): CarMutationResponse
 		deleteCar(carId: ID):  CarMutationResponse
 		createExpense(carId: ID!, description: String!, value: Float!): ExpenseMutationResponse
 		deleteExpense(expenseId: ID!): ExpenseMutationResponse
@@ -57,6 +58,7 @@ const typeDefs = gql`
 
 	type Car {
 		carId: ID!
+		year: String!
 		make: String!
 		model: String!
 		created: String!
@@ -132,7 +134,7 @@ const typeDefs = gql`
 		}
 	},
 	Mutation: {
-		async createCar(_: null, { make, model }: { make: string, model: string }) {
+		async createCar(_: null, { year, make, model }: { year: string, make: string, model: string }) {
 			const carId = await firestore
 				.collection('cars')
 				.doc()
@@ -145,6 +147,7 @@ const typeDefs = gql`
 				.doc(carId)
 				.set({
 					carId,
+					year,
 					make,
 					model,
 					created
