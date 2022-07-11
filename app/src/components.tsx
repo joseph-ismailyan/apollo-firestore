@@ -1,5 +1,5 @@
 import { Show, For, createSignal } from "solid-js";
-import { Expense } from './interfaces.js';
+import { Link } from "solid-app-router"
 import Button from "@suid/material/Button";
 import TextField from "@suid/material/TextField";
 import CircularProgress from "@suid/material/CircularProgress";
@@ -9,9 +9,8 @@ import AddIcon from '@suid/icons-material/Add';
 import AddCircleOutlineIcon from '@suid/icons-material/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@suid/icons-material/RemoveCircleOutline';
 import Divider from "@suid/material/Divider"
-
+import { Expense } from './interfaces.js';
 import "./index.css";
-
 
 const CarCard = (props: any) => {
     const [loading, setLoading] = createSignal(false);
@@ -19,16 +18,21 @@ const CarCard = (props: any) => {
 
     return(
         <div class="car-card" style={{"margin-bottom": "10px"}}>
-            <span>{props.car.year} {props.car.make} {props.car.model}</span>
+            <span> {props.car.year} {props.car.make} {props.car.model}</span>
 
             <Show when={props.car.totalExpenses}>
                 <span>Expenses: ${props.car.totalExpenses}</span>
-                <div onClick={() => {setShowExpenses(!showExpenses())}} style="cursor: pointer; margin-top: 16px; margin-bottom: 4px; font-size: 10pt; color: var(--primary-text-color); display: flex; align-items: center; justify-content: right">
-                    { 
-                    !showExpenses() ? 
-                    <><AddCircleOutlineIcon sx={{fontSize: 14}}></AddCircleOutlineIcon>&nbsp;View Expenses</>: 
-                    <><RemoveCircleOutlineIcon sx={{fontSize: 14}}></RemoveCircleOutlineIcon>&nbsp;Hide Expenses</> 
-                }
+                <div class="flex align-v" onClick={() => {setShowExpenses(!showExpenses())}} style="cursor: pointer; margin-top: 16px; margin-bottom: 4px; font-size: 10pt; color: var(--primary-text-color); justify-content: space-between">
+                    <Link href={`/vehicle/${props.car.carId}`}>
+                        View Details
+                    </Link>
+                    <span class="flex align-v">
+                        { 
+                            !showExpenses() ? 
+                            <><AddCircleOutlineIcon sx={{fontSize: 14}}></AddCircleOutlineIcon>&nbsp;View Expenses</>: 
+                            <><RemoveCircleOutlineIcon sx={{fontSize: 14}}></RemoveCircleOutlineIcon>&nbsp;Hide Expenses</> 
+                        }
+                    </span>
                 </div>
             </Show>
 

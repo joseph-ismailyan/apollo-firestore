@@ -11,6 +11,8 @@ interface Car {
 	year: string;
 	make: string;
 	model: string;
+	totalExpenses: number;
+    expenses: [Expense];
 }
   
 interface Expense {
