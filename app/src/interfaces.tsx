@@ -14,4 +14,8 @@ interface Car {
     expenses: [Expense];
 }
 
-export { Expense, Car};
+interface VehicleResponse {
+    data: Car;
+}
+
+export { Expense, Car, VehicleResponse};

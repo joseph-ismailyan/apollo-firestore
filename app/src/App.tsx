@@ -14,7 +14,7 @@ const App: Component = () => {
 
         <Routes>
             <Route path="/" component={Home}></Route>
-            <Route path="vehicle/:id" component={VehicleDetails}></Route>
+            <Route path="/vehicle/:id" component={VehicleDetails}></Route>
             <Route path="/about" element={<main><h1 class="flex flex-row" style="justify-content: center;">this is the about page</h1></main>}></Route>
         </Routes>
         </>

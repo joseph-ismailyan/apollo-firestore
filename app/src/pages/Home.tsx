@@ -1,12 +1,18 @@
-import { Component, Show, For, createResource, createSignal } from "solid-js";
+// libraries
+import { Component, Show, For, createResource, createSignal, createEffect } from "solid-js";
+import { createClient } from "@urql/core";
+import { gql } from "@solid-primitives/graphql";
 
-import { createClient } from "@urql/core"
-import { gql } from "@solid-primitives/graphql"
+// external components
 import Button from "@suid/material/Button";
 import CircularProgress from "@suid/material/CircularProgress";
+import Alert from "@suid/material/Alert";
+
+// internal components
 import { CarCard, AddCar } from "../components.jsx";
 import { Car } from "../interfaces.js";
 
+// css 
 import "../index.css";
 
 const Home: Component = () => {
@@ -39,7 +45,7 @@ const Home: Component = () => {
     const deleteCar = async (carId: string) => {
         await client.mutation(
             gql`
-                mutation Car($carId: ID!) {
+                mutation Car ($carId: ID!) {
                     deleteCar(carId: $carId){
                         code,
                         success,
@@ -50,6 +56,7 @@ const Home: Component = () => {
         ).toPromise()
         .then((res: object) => {
             refetch();
+            setSuccessAlert({show: true, message: 'Successfully deleted vehicle!'});
             return res;
         })
         .catch((error: object) => {return error});
@@ -71,6 +78,7 @@ const Home: Component = () => {
         ).toPromise()
         .then((res: object) => {
             refetch();
+            setSuccessAlert({show: true, message: 'Successfully added vehicle!'});
             return res;
         })
         .catch((error: object) => {return error});
@@ -81,30 +89,46 @@ const Home: Component = () => {
     const [cars, { mutate, refetch }] = createResource(getCarsData);
     const [showAddCar, setShowAddCar] = createSignal(false);
 
+    const [successAlert, setSuccessAlert] = createSignal({show: false, message: ''});
+
+    createEffect(() => {
+        if(successAlert().show) {
+            setTimeout(() => {
+                setSuccessAlert({show: false, message: ''});
+            }, 3000)
+        }
+    });
 
     return(
-        <main class="box-border w-full min-h-screen flex flex-col justify-center items-center space-y-4 text-white">
-        <h4>All Cars</h4>
-        <Button onClick={() => setShowAddCar(!showAddCar())}> { showAddCar() ? 'Hide' : 'Show' } </Button>
+        <>
+            <main class="box-border w-full min-h-screen flex flex-col justify-center items-center space-y-4 text-white">
+                <h4>All Vehicles</h4>
+                <Button onClick={() => setShowAddCar(!showAddCar())}> { showAddCar() ? 'Hide' : 'Show' } </Button>
 
-        <Show when={showAddCar()}>
-            <AddCar createCar={createCar}></AddCar>
-        </Show>
+                <Show when={showAddCar()}>
+                    <AddCar createCar={createCar}></AddCar>
+                </Show>
 
-        <Show when={cars()}>
-            <section>
-                <For each={cars().data.cars as Car[]}>
-                    {(car: Car)=> (
-                        <CarCard car={car} deleteCar={deleteCar}></CarCard>
-                    )}
-                </For>
-            </section>
-        </Show>
+                <Show when={cars()}>
+                    <section>
+                        <For each={cars().data.cars as Car[]}>
+                            {(car: Car)=> (
+                                <CarCard car={car} deleteCar={deleteCar} showDetailsLink={true}></CarCard>
+                            )}
+                        </For>
+                    </section>
+                </Show>
 
-        <Show when={cars.loading}>
-            <CircularProgress size={20}></CircularProgress>
-        </Show>
-    </main>
+                <Show when={cars.loading}>
+                    <CircularProgress size={20}></CircularProgress>
+                </Show>
+            </main>
+            <Show when={successAlert().show}>
+                <div style="position: absolute; bottom: 0; left: 0;">
+                    <Alert severity="success" variant="filled">{successAlert().message}</Alert>
+                </div>
+            </Show>
+        </>
     )
 }
 
