@@ -2,6 +2,11 @@
 import { Component, Show, For, createResource, createSignal, createEffect } from "solid-js";
 import { createClient } from "@urql/core";
 import { gql } from "@solid-primitives/graphql";
+import createLocalStore from "@solid-primitives/local-store";
+
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 
 // external components
 import Button from "@suid/material/Button";
@@ -15,10 +20,47 @@ import { Car } from "../interfaces.js";
 // css 
 import "../index.css";
 
-const Home: Component = () => {
+const firebaseConfig = {
+    apiKey: import.meta.env.VITE_APIKEY,
+    authDomain: import.meta.env.VITE_AUTHDOMAIN,
+    projectId: import.meta.env.VITE_PROJECTID,
+    storageBucket: import.meta.env.VITE_STORAGEBUCKET,
+    messagingSenderId: import.meta.env.VITE_MESSAGINGSENDERID,
+    appId: import.meta.env.VITE_APPID,
+    measurementId: import.meta.env.VITE_MEASUREMENTID
+  };
+  
+const API_URL = import.meta.env.VITE_API_URL;
+  
+const app = initializeApp(firebaseConfig);
+const provider = new GoogleAuthProvider();
+const analytics = getAnalytics(app);
+const auth = getAuth();
 
+const [store, setStore] = createLocalStore();
+
+const signIn = async () => {
+signInWithPopup(auth, provider)
+  .then((result) => {
+    const credential = GoogleAuthProvider.credentialFromResult(result);
+    const user = result.user;
+    const user_id = user.uid;
+    const old_token = user.getIdToken();
+
+    setStore("user_id", user_id);
+  }).catch((error) => {
+    const errorCode = error.code;
+    const errorMessage = error.message;
+
+    const email = error.customData.email;
+
+    const credential = GoogleAuthProvider.credentialFromError(error);
+  });
+}
+
+const Home: Component = () => {
     const client = createClient({
-        url: 'http://localhost:4000',
+        url: API_URL,
         requestPolicy: 'cache-and-network'
     });
 
@@ -102,13 +144,14 @@ const Home: Component = () => {
     return(
         <>
             <main class="box-border w-full min-h-screen flex flex-col justify-center items-center space-y-4 text-white">
+
                 <h4>All Vehicles</h4>
                 <Button onClick={() => setShowAddCar(!showAddCar())}> { showAddCar() ? 'Hide' : 'Show' } </Button>
 
                 <Show when={showAddCar()}>
                     <AddCar createCar={createCar}></AddCar>
                 </Show>
-
+                <Button onClick={() => signIn()}>sign in</Button>
                 <Show when={cars()}>
                     <section>
                         <For each={cars().data.cars as Car[]}>

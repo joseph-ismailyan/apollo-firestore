@@ -12,14 +12,14 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/index.ts",
+            "program": "${workspaceFolder}/server/index.ts",
             // "preLaunchTask": "cross-env NODE_ENV=development concurrently \"tsc --watch\" \"nodemon -q dist/index.js\"",
             "resolveSourceMapLocations": [
                 "${workspaceFolder}/**",
                 "!**/node_modules/**"
             ],
             "outFiles": [
-                "${workspaceFolder}/dist/*.js"
+                "${workspaceFolder}/server/dist/*.js"
             ]
         }
     ]

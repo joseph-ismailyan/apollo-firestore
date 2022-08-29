@@ -1,7 +1,21 @@
 import { ApolloServer, ApolloError, ValidationError, gql } from 'apollo-server';
 const { initializeApp, cert } = require('firebase-admin/app');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore')
-const serviceAccount = require('../service-account.json');
+
+require('dotenv').config();
+
+const serviceAccount = {
+	"type": process.env.TYPE,
+	"project_id": process.env.PROJECT_ID,
+	"private_key_id": process.env.PRIVATE_KEY_ID,
+	"private_key": process.env.PRIVATE_KEY?.replace(/\\n/g, '\n'),
+	"client_email": process.env.CLIENT_EMAIL,
+	"client_id": process.env.CLIENT_ID,
+	"auth_uri": process.env.AUTH_URI,
+	"token_uri": process.env.TOKEN_URI,
+	"auth_provider_x509_cert_url": process.env.AUTH_PROVIDER_X509_CERT_URL,
+	"client_x509_cert_url": process.env.CLIENT_X509_CERT_URL
+};
 
 initializeApp({ credential: cert(serviceAccount) });
 const firestore = getFirestore();
@@ -80,7 +94,7 @@ const typeDefs = gql`
 	}
 `;
   
-  const resolvers = {
+const resolvers = {
 	Query: {
 		async cars() {
 			const cars = await firestore
@@ -305,7 +319,7 @@ const typeDefs = gql`
 			}
 		}
 	}
-  };
+};
   
 const server = new ApolloServer({
 	typeDefs,
